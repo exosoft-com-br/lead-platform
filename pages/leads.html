@@ -45,8 +45,11 @@
     <!-- Filters -->
     <div class="filter-bar">
       <input type="text" class="form-input filter-search" id="searchInput" placeholder="🔍 Buscar por nome, email, bairro..." oninput="applyFilters()">
-      <select class="form-select" id="filterEstado" onchange="applyFilters()">
+      <select class="form-select" id="filterEstado" onchange="onFilterEstadoChange()">
         <option value="">Todos os estados</option>
+      </select>
+      <select class="form-select" id="filterCidade" onchange="applyFilters()" disabled>
+        <option value="">Todas as cidades</option>
       </select>
       <select class="form-select" id="filterNicho" onchange="applyFilters()">
         <option value="">Todos os nichos</option>

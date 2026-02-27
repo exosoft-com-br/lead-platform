@@ -89,9 +89,29 @@ function renderLeads(leads) {
 }
 
 /* ── Filters ──────────────────────────────── */
+async function onFilterEstadoChange() {
+  const uf = document.getElementById('filterEstado').value;
+  const selCidade = document.getElementById('filterCidade');
+  selCidade.innerHTML = '<option value="">Todas as cidades</option>';
+  selCidade.disabled = true;
+  if (uf) {
+    selCidade.innerHTML = '<option value="">Carregando...</option>';
+    await IBGE.popularSelectMunicipios(selCidade, uf);
+    // Re-insere a opção vazia no topo
+    const optTodas = document.createElement('option');
+    optTodas.value = '';
+    optTodas.textContent = 'Todas as cidades';
+    selCidade.insertBefore(optTodas, selCidade.firstChild);
+    selCidade.value = '';
+    selCidade.disabled = false;
+  }
+  applyFilters();
+}
+
 function applyFilters() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const estado = document.getElementById('filterEstado').value;
+  const cidade = document.getElementById('filterCidade').value;
   const nicho  = document.getElementById('filterNicho').value;
   const status = document.getElementById('filterStatus').value;
 
@@ -102,9 +122,10 @@ function applyFilters() {
       l.bairro?.toLowerCase().includes(search) ||
       l.cidade?.toLowerCase().includes(search);
     const matchEstado = !estado || l.estado === estado;
+    const matchCidade = !cidade || l.cidade === cidade;
     const matchNicho  = !nicho  || l.nicho === nicho;
     const matchStatus = !status || l.status === status;
-    return matchSearch && matchEstado && matchNicho && matchStatus;
+    return matchSearch && matchEstado && matchCidade && matchNicho && matchStatus;
   });
   renderLeads(filtered);
 }

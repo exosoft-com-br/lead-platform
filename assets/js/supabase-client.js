@@ -16,6 +16,9 @@ function initSupabase() {
     _sbClient = sbLib.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseKey);
     _dbReady = true;
     console.log('[Supabase] Cliente criado com sucesso. isDbReady=true');
+    // Limpa dados de demo do localStorage ao conectar com Supabase real
+    localStorage.removeItem('leads_local');
+    localStorage.removeItem('leads_seeded');
     setDbStatus('online', 'Supabase conectado');
     // testa a query imediatamente
     _sbClient.from('leads_ibge').select('id', { count: 'exact', head: true })
@@ -238,10 +241,6 @@ function scoreColor(score) {
 
 // Init on load
 function initSupabaseOnLoad() {
-  // Sempre semeia dados de demo no localStorage na primeira visita
-  // (usado como fallback se Supabase não conectar ou tabela estiver vazia)
-  _seedDemoLeads();
-
   if (APP_CONFIG.supabaseUrl.includes('SEU_PROJETO')) {
     setDbStatus('offline', 'Modo demo — configure o Supabase para dados reais');
     return;
