@@ -252,12 +252,13 @@ async function onCidadeChange() {
   if (!selectedOpt || !selectedOpt.dataset.id) return;
 
   const codMunicipio = selectedOpt.dataset.id;
+  const siglaUF = document.getElementById('fEstado').value;
   document.getElementById('fMunicipioId').value = codMunicipio;
-  document.getElementById('ibgeLoading').textContent = 'Calculando score IBGE...';
+  document.getElementById('ibgeLoading').textContent = 'Buscando dados IBGE (PIB, população)...';
   document.getElementById('ibgeLoading').style.display = 'block';
   document.getElementById('ibgeData').style.display = 'none';
 
-  const result = await IBGE.calcularScoreLead(codMunicipio);
+  const result = await IBGE.calcularScoreLead(codMunicipio, siglaUF);
   ibgeScoreData = result;
 
   document.getElementById('fScoreIbge').value = result.score;
@@ -284,7 +285,7 @@ function showIbgeData(result) {
   document.getElementById('ibgeIdh').textContent = d.idh
     ? Number(d.idh).toFixed(3) : '—';
   document.getElementById('ibgeScorePib').textContent = d.score_pib ? `${d.score_pib}/100` : '—';
-  document.getElementById('ibgeScoreIdh').textContent = d.score_idh ? `${d.score_idh}/100` : '—';
+  document.getElementById('ibgeScoreIdh').textContent = d.score_idh ? `${d.score_idh}/100 (${d.fonte_idh||'PNUD'})` : '—';
   document.getElementById('ibgeScorePop').textContent = d.score_pop ? `${d.score_pop}/100` : '—';
 }
 

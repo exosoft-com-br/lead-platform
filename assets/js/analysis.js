@@ -34,7 +34,8 @@ async function analyzemunicipality(codMunicipio, nome) {
   document.getElementById('heroScore').textContent    = '...';
   document.getElementById('heroSegmento').textContent = '...';
 
-  const result = await IBGE.calcularScoreLead(codMunicipio);
+  const uf = document.getElementById('anaEstado').value;
+  const result = await IBGE.calcularScoreLead(codMunicipio, uf);
   const seg = getSegment(result.score);
 
   // Hero
@@ -50,9 +51,9 @@ async function analyzemunicipality(codMunicipio, nome) {
     <div class="kpi-card">
       <div class="kpi-icon blue">💰</div>
       <div class="kpi-info">
-        <p class="kpi-label">PIB per capita</p>
+        <p class="kpi-label">PIB per capita est.</p>
         <h2 class="kpi-value">R$${d.pib_per_capita ? Number(d.pib_per_capita).toLocaleString('pt-BR',{maximumFractionDigits:0}) : '—'}</h2>
-        <span class="kpi-delta">Score: ${d.score_pib||'—'}/100</span>
+        <span class="kpi-delta">Score: ${d.score_pib||'—'}/100 · ${d.fonte_pib||'IBGE SIDRA'}</span>
       </div>
     </div>
     <div class="kpi-card">
@@ -60,15 +61,15 @@ async function analyzemunicipality(codMunicipio, nome) {
       <div class="kpi-info">
         <p class="kpi-label">População</p>
         <h2 class="kpi-value">${d.populacao ? Number(d.populacao).toLocaleString('pt-BR') : '—'}</h2>
-        <span class="kpi-delta">Score: ${d.score_pop||'—'}/100</span>
+        <span class="kpi-delta">Score: ${d.score_pop||'—'}/100 · ${d.fonte_pop||'IBGE Censo 2022'}</span>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon orange">📚</div>
       <div class="kpi-info">
-        <p class="kpi-label">IDH Municipal</p>
+        <p class="kpi-label">IDHM ref. UF</p>
         <h2 class="kpi-value">${d.idh ? Number(d.idh).toFixed(3) : '—'}</h2>
-        <span class="kpi-delta">Score: ${d.score_idh||'—'}/100</span>
+        <span class="kpi-delta">Score: ${d.score_idh||'—'}/100 · ${d.fonte_idh||'PNUD'}</span>
       </div>
     </div>
     <div class="kpi-card">
@@ -112,9 +113,12 @@ async function analyzemunicipality(codMunicipio, nome) {
   // Raw data list
   document.getElementById('rawDataList').innerHTML = `
     <div class="info-row"><span>Código IBGE</span><strong>${codMunicipio}</strong></div>
-    <div class="info-row"><span>PIB per capita</span><strong>${d.pib_per_capita ? 'R$ '+Number(d.pib_per_capita).toLocaleString('pt-BR') : 'N/D'}</strong></div>
+    <div class="info-row"><span>PIB per capita est.</span><strong>${d.pib_per_capita ? 'R$ '+Number(d.pib_per_capita).toLocaleString('pt-BR') : 'N/D'}</strong></div>
+    <div class="info-row" style="font-size:11px;color:var(--text-muted)"><span>Fonte PIB</span><span>${d.fonte_pib||'IBGE SIDRA'}</span></div>
     <div class="info-row"><span>População</span><strong>${d.populacao ? Number(d.populacao).toLocaleString('pt-BR') : 'N/D'}</strong></div>
-    <div class="info-row"><span>IDHM</span><strong>${d.idh ? Number(d.idh).toFixed(3) : 'N/D'}</strong></div>
+    <div class="info-row" style="font-size:11px;color:var(--text-muted)"><span>Fonte Pop</span><span>${d.fonte_pop||'IBGE Censo 2022'}</span></div>
+    <div class="info-row"><span>IDHM (ref. UF)</span><strong>${d.idh ? Number(d.idh).toFixed(3) : 'N/D'}</strong></div>
+    <div class="info-row" style="font-size:11px;color:var(--text-muted)"><span>Fonte IDH</span><span>${d.fonte_idh||'PNUD Atlas'}</span></div>
     <div class="info-row"><span>Score PIB</span><strong>${d.score_pib||0}/100</strong></div>
     <div class="info-row"><span>Score Pop</span><strong>${d.score_pop||0}/100</strong></div>
     <div class="info-row"><span>Score IDH</span><strong>${d.score_idh||0}/100</strong></div>
