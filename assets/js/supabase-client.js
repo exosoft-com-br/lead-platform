@@ -26,6 +26,8 @@ function initSupabase() {
         if (error) console.error('[Supabase] Erro ao consultar leads_ibge:', error);
         else console.log('[Supabase] leads_ibge count:', count);
       });
+    // Notifica outros módulos que o cliente está pronto
+    document.dispatchEvent(new CustomEvent('supabase:ready'));
     return _sbClient;
   } catch(e) {
     console.error('[Supabase] init error:', e);

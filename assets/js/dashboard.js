@@ -18,6 +18,12 @@ if (document.readyState === 'loading') {
   initDashboard();
 }
 
+// Recarrega dashboard quando Supabase conectar (resolve race condition)
+document.addEventListener('supabase:ready', () => {
+  console.log('[dashboard] supabase:ready — recarregando dashboard');
+  initDashboard();
+});
+
 /* ── KPIs ─────────────────────────────────── */
 async function loadKPIs() {
   const stats = await getLeadStats();

@@ -32,6 +32,12 @@ if (document.readyState === 'loading') {
   initLeads();
 }
 
+// Recarrega leads quando Supabase conectar (resolve race condition)
+document.addEventListener('supabase:ready', () => {
+  console.log('[leads] supabase:ready recebido — recarregando leads');
+  loadLeads();
+});
+
 /* ── Load & Render ────────────────────────── */
 async function loadLeads() {
   allLeads = await getLeads();
