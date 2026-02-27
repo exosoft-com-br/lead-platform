@@ -220,18 +220,18 @@
       el.innerHTML = '<div class="line info">🔄 Conectando ao Supabase...</div>';
 
       const t0 = Date.now();
-      const { data, error } = await client.from('leads').select('id, nome, score_ibge, status').limit(5);
+      const { data, error } = await client.from('leads_ibge').select('id, nome, score_ibge, status').limit(5);
       const ms = Date.now() - t0;
 
       if (error) {
         el.innerHTML = `
-          <div class="line err">❌ Erro ao consultar tabela <b>leads</b> (${ms}ms)</div>
+          <div class="line err">❌ Erro ao consultar tabela <b>leads_ibge</b> (${ms}ms)</div>
           <div class="line err">Código: ${error.code} — ${error.message}</div>
-          <div class="line warn">⚠️ Execute o schema.sql no Supabase SQL Editor (arquivo: supabase/schema.sql)</div>
+          <div class="line warn">⚠️ Execute o schema_ibge.sql no Supabase SQL Editor (arquivo: supabase/schema_ibge.sql)</div>
         `;
       } else if (!data || data.length === 0) {
         el.innerHTML = `
-          <div class="line ok">✅ Conexão OK — tabela <b>leads</b> existe (${ms}ms)</div>
+          <div class="line ok">✅ Conexão OK — tabela <b>leads_ibge</b> existe (${ms}ms)</div>
           <div class="line warn">⚠️ Tabela vazia — execute o schema.sql que inclui 10 leads de exemplo</div>
         `;
       } else {

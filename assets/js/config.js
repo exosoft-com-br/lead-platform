@@ -12,8 +12,8 @@ const APP_CONFIG = {
   // 1. Acesse https://app.supabase.com → seu projeto → Settings → API
   // 2. Copie "Project URL" e "anon public" key
   // 3. OU configure via páginal de Configurações da plataforma
-  supabaseUrl:  _savedUrl  || 'https://SEU_PROJETO.supabase.co',
-  supabaseKey:  _savedKey  || 'SUA_ANON_KEY_AQUI',
+  supabaseUrl:  _savedUrl  || 'https://bhargdkruycbrcanfvuz.supabase.co',
+  supabaseKey:  _savedKey  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoYXJnZGtydXljYnJjYW5mdnV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzQ1NzgsImV4cCI6MjA4NzQ1MDU3OH0.jBRK_IhUNzxMzf_4UNjpabgwEB7MpqrTL29qTvZK_os',
 
   // ── App ───────────────────────────────────
   appName: 'LeadIBGE',

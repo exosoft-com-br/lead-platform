@@ -165,7 +165,7 @@ async function fetchSIDRABatch(agregado, variavel, periodo, ids) {
 
 // ── Supabase REST ─────────────────────────────────────────────
 async function upsertLeads(rows) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/leads_ibge`, {
     method: 'POST',
     headers: {
       'apikey':       SUPABASE_KEY,

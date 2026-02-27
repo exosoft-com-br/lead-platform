@@ -39,7 +39,7 @@ function setDbStatus(state, text) {
 
 async function getLeads(filters = {}) {
   if (!isDbReady()) return _localLeads();
-  let q = supabase.from('leads').select('*').order('created_at', { ascending: false });
+  let q = supabase.from('leads_ibge').select('*').order('created_at', { ascending: false });
   if (filters.search)  q = q.ilike('nome', `%${filters.search}%`);
   if (filters.estado)  q = q.eq('estado', filters.estado);
   if (filters.segment) q = q.eq('segmento', filters.segment);
@@ -52,7 +52,7 @@ async function getLeads(filters = {}) {
 
 async function getLeadById(id) {
   if (!isDbReady()) return null;
-  const { data, error } = await supabase.from('leads').select('*').eq('id', id).single();
+  const { data, error } = await supabase.from('leads_ibge').select('*').eq('id', id).single();
   if (error) return null;
   return data;
 }
@@ -65,25 +65,25 @@ async function createLead(lead) {
     localStorage.setItem('leads_local', JSON.stringify(stored));
     return { data: newLead, error: null };
   }
-  const { data, error } = await supabase.from('leads').insert([lead]).select().single();
+  const { data, error } = await supabase.from('leads_ibge').insert([lead]).select().single();
   return { data, error };
 }
 
 async function updateLead(id, updates) {
   if (!isDbReady()) return { error: 'DB offline' };
-  const { data, error } = await supabase.from('leads').update(updates).eq('id', id).select().single();
+  const { data, error } = await supabase.from('leads_ibge').update(updates).eq('id', id).select().single();
   return { data, error };
 }
 
 async function deleteLead(id) {
   if (!isDbReady()) return { error: null };
-  const { error } = await supabase.from('leads').delete().eq('id', id);
+  const { error } = await supabase.from('leads_ibge').delete().eq('id', id);
   return { error };
 }
 
 async function getLeadStats() {
   if (!isDbReady()) return _localStats();
-  const { data, error } = await supabase.from('leads').select('status, segmento, score_ibge, estado');
+  const { data, error } = await supabase.from('leads_ibge').select('status, segmento, score_ibge, estado');
   if (error || !data) return _localStats();
 
   const total     = data.length;
@@ -104,7 +104,7 @@ async function getLeadsTimeSeries(days = 30) {
   if (!isDbReady()) return _demoTimeSeries(days);
   const from = new Date();
   from.setDate(from.getDate() - days);
-  const { data, error } = await supabase.from('leads')
+  const { data, error } = await supabase.from('leads_ibge')
     .select('created_at')
     .gte('created_at', from.toISOString())
     .order('created_at');
