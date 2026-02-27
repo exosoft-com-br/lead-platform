@@ -6,6 +6,25 @@
 const IBGE = {
   base: 'https://servicodados.ibge.gov.br/api',
 
+  // ── Fallback estático: todos os 27 estados ─────────
+  // Usado quando a API do IBGE não responde
+  _estados_fallback: [
+    {sigla:'AC',nome:'Acre',id:12},{sigla:'AL',nome:'Alagoas',id:27},
+    {sigla:'AM',nome:'Amazonas',id:13},{sigla:'AP',nome:'Amapá',id:16},
+    {sigla:'BA',nome:'Bahia',id:29},{sigla:'CE',nome:'Ceará',id:23},
+    {sigla:'DF',nome:'Distrito Federal',id:53},{sigla:'ES',nome:'Espírito Santo',id:32},
+    {sigla:'GO',nome:'Goiás',id:52},{sigla:'MA',nome:'Maranhão',id:21},
+    {sigla:'MG',nome:'Minas Gerais',id:31},{sigla:'MS',nome:'Mato Grosso do Sul',id:50},
+    {sigla:'MT',nome:'Mato Grosso',id:51},{sigla:'PA',nome:'Pará',id:15},
+    {sigla:'PB',nome:'Paraíba',id:25},{sigla:'PE',nome:'Pernambuco',id:26},
+    {sigla:'PI',nome:'Piauí',id:22},{sigla:'PR',nome:'Paraná',id:41},
+    {sigla:'RJ',nome:'Rio de Janeiro',id:33},{sigla:'RN',nome:'Rio Grande do Norte',id:24},
+    {sigla:'RO',nome:'Rondônia',id:11},{sigla:'RR',nome:'Roraima',id:14},
+    {sigla:'RS',nome:'Rio Grande do Sul',id:43},{sigla:'SC',nome:'Santa Catarina',id:42},
+    {sigla:'SE',nome:'Sergipe',id:28},{sigla:'SP',nome:'São Paulo',id:35},
+    {sigla:'TO',nome:'Tocantins',id:17},
+  ].sort((a,b) => a.nome.localeCompare(b.nome)),
+
   // ── IDHM de referência por UF (Atlas 2010/PNUD) ──
   // Usado como fallback pois o IBGE não tem API live para IDHM
   _idhm_uf: {
@@ -20,16 +39,32 @@ const IBGE = {
   /* ── Localidades ─────────────────────────── */
   async getEstados() {
     try {
-      const r = await fetch(`${this.base}/v1/localidades/estados?orderBy=nome`);
-      return r.ok ? r.json() : [];
-    } catch(e) { return []; }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const r = await fetch(`${this.base}/v1/localidades/estados?orderBy=nome`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (r.ok) return r.json();
+      console.warn('[IBGE] getEstados: resposta não-ok, usando fallback.');
+      return this._estados_fallback;
+    } catch(e) {
+      console.warn('[IBGE] getEstados: erro de rede, usando fallback.', e.message);
+      return this._estados_fallback;
+    }
   },
 
   async getMunicipios(uf) {
     try {
-      const r = await fetch(`${this.base}/v1/localidades/estados/${uf}/municipios?orderBy=nome`);
-      return r.ok ? r.json() : [];
-    } catch(e) { return []; }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const r = await fetch(`${this.base}/v1/localidades/estados/${uf}/municipios?orderBy=nome`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (r.ok) return r.json();
+      console.warn('[IBGE] getMunicipios: resposta não-ok para UF', uf);
+      return [];
+    } catch(e) {
+      console.warn('[IBGE] getMunicipios: erro de rede para UF', uf, e.message);
+      return [];
+    }
   },
 
   /* ── SIDRA helper genérico ────────────────── */
@@ -102,9 +137,9 @@ const IBGE = {
 
     const scoreIDH = Math.min(100, idh * 100);
 
-    const w = APP_CONFIG.scoreWeights;
+    const w = { pib_per_capita: 0.35, populacao: 0.25, idh: 0.40 };
     const total = Math.round(
-      scorePIB * (w.pib_per_capita + w.grau_instrucao) +
+      scorePIB * (w.pib_per_capita) +
       scorePop *  w.populacao +
       scoreIDH *  w.idh
     );
@@ -137,8 +172,15 @@ const IBGE = {
 
   /* ── Preenche selects ── */
   async popularSelectEstados(selectEl) {
+    selectEl.innerHTML = '<option value="">⏳ Carregando estados...</option>';
+    selectEl.disabled = true;
     const estados = await this.getEstados();
     selectEl.innerHTML = '<option value="">Selecione o estado</option>';
+    if (!estados.length) {
+      selectEl.innerHTML = '<option value="">⚠️ Erro ao carregar estados</option>';
+      selectEl.disabled = false;
+      return;
+    }
     estados.forEach(e => {
       const opt = document.createElement('option');
       opt.value = e.sigla;
@@ -146,6 +188,7 @@ const IBGE = {
       opt.dataset.id = e.id;
       selectEl.appendChild(opt);
     });
+    selectEl.disabled = false;
   },
 
   async popularSelectMunicipios(selectEl, uf) {

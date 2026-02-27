@@ -101,6 +101,12 @@
           <h3 id="municipiosTitle">Municípios do Estado</h3>
           <span class="badge badge-blue" id="municipiosCount"></span>
         </div>
+        <div style="padding:8px 16px">
+          <input type="text" id="municipioSearch" class="form-input"
+            placeholder="🔍 Filtrar município..."
+            oninput="filtrarMunicipios(this.value)"
+            style="width:100%;max-width:380px">
+        </div>
         <div class="table-wrapper">
           <table class="data-table">
             <thead>

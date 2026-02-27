@@ -1,9 +1,24 @@
 /* =============================================
-   analysis.js — Análise IBGE
+   analysis.js — Análise IBGE por Município
    ============================================= */
 
 let radarChart = null;
 let currentMunicipio = null;
+let currentScore = null;
+
+// Funções auxiliares locais (não dependem de APP_CONFIG)
+function getSegment(score) {
+  if (score >= 80) return { label: 'Premium',    color: '#10B981' };
+  if (score >= 60) return { label: 'Alto Valor', color: '#4F46E5' };
+  if (score >= 40) return { label: 'Médio',      color: '#F59E0B' };
+  return              { label: 'Básico',      color: '#94A3B8' };
+}
+function scoreColor(score) {
+  if (score >= 80) return '#10B981';
+  if (score >= 60) return '#4F46E5';
+  if (score >= 40) return '#F59E0B';
+  return '#94A3B8';
+}
 
 async function initAnalysis() {
   await IBGE.popularSelectEstados(document.getElementById('anaEstado'));
@@ -45,6 +60,7 @@ async function analyzemunicipality(codMunicipio, nome) {
   const seg = getSegment(result.score);
 
   // Hero
+  currentScore = result.score;
   document.getElementById('heroMunicipio').textContent = `📍 ${nome}`;
   document.getElementById('heroScore').textContent    = result.score;
   document.getElementById('heroSegmento').textContent = seg.label;
@@ -132,23 +148,41 @@ async function analyzemunicipality(codMunicipio, nome) {
   `;
 }
 
+let _allMunicipios = [];
+
 async function loadMunicipios(uf) {
   const tbody = document.getElementById('municipiosBody');
+  const searchEl = document.getElementById('municipioSearch');
+  if (searchEl) { searchEl.value = ''; }
   tbody.innerHTML = '<tr><td colspan="4" class="loading-row">Carregando municípios...</td></tr>';
-  const regionais = await IBGE.getDadosRegionais(uf);
+  _allMunicipios = await IBGE.getMunicipios(uf);
   document.getElementById('municipiosTitle').textContent = `Municípios de ${uf}`;
-  document.getElementById('municipiosCount').textContent = `${regionais.total_municipios} no total`;
-  tbody.innerHTML = regionais.municipios.map((m, i) => `
+  document.getElementById('municipiosCount').textContent = `${_allMunicipios.length} municípios`;
+  renderMunicipiosTable(_allMunicipios);
+}
+
+function renderMunicipiosTable(list) {
+  const tbody = document.getElementById('municipiosBody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="loading-row">Nenhum município encontrado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((m, i) => `
     <tr>
       <td>${i+1}</td>
       <td>${m.nome}</td>
       <td style="color:var(--text-muted);font-family:monospace">${m.id}</td>
       <td>
-        <button class="btn btn-outline btn-sm" onclick="selectMunicipio('${m.id}', '${m.nome.replace(/'/g,"\\'")}')">
-          Analisar
-        </button>
+        <button class="btn btn-outline btn-sm" onclick="selectMunicipio('${m.id}', '${m.nome.replace(/'/g,"\\'")}')">Analisar</button>
       </td>
     </tr>`).join('');
+}
+
+function filtrarMunicipios(term) {
+  const t = term.trim().toLowerCase();
+  const filtered = t ? _allMunicipios.filter(m => m.nome.toLowerCase().includes(t)) : _allMunicipios;
+  document.getElementById('municipiosCount').textContent = `${filtered.length} de ${_allMunicipios.length} municípios`;
+  renderMunicipiosTable(filtered);
 }
 
 function selectMunicipio(id, nome) {
@@ -161,7 +195,9 @@ function selectMunicipio(id, nome) {
 }
 
 function addLeadFromAnalysis() {
-  const uf = document.getElementById('anaEstado').value;
+  const uf     = document.getElementById('anaEstado').value;
   const cidade = document.getElementById('anaCidade').value;
-  window.location.href = `leads.html#novo?estado=${uf}&cidade=${encodeURIComponent(cidade)}`;
+  const score  = currentScore ?? '';
+  const params = new URLSearchParams({ novo:'1', estado:uf, cidade, municipio:cidade, score });
+  window.location.href = `leads.html?${params.toString()}`;
 }

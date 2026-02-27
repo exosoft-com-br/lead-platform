@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Segmentos — LeadIBGE</title>
+  <title>Segmentos IBGE — NichoLeads</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -12,14 +12,14 @@
 <body class="bg-gray">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-icon">📊</div>
-      <span class="logo-text">LeadIBGE</span>
+      <div class="logo-icon">🎯</div>
+      <span class="logo-text">NichoLeads</span>
     </div>
     <nav class="sidebar-nav">
       <a href="../index.html" class="nav-item"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
-      <a href="leads.html" class="nav-item"><span class="nav-icon">👥</span><span>Leads</span></a>
+      <a href="leads.html"    class="nav-item"><span class="nav-icon">👥</span><span>Leads</span></a>
       <a href="analysis.html" class="nav-item"><span class="nav-icon">🗺️</span><span>Análise IBGE</span></a>
-      <a href="segments.html" class="nav-item active"><span class="nav-icon">🎯</span><span>Segmentos</span></a>
+      <a href="segments.html" class="nav-item active"><span class="nav-icon">📊</span><span>Segmentos</span></a>
       <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span>Configurações</span></a>
     </nav>
     <div class="sidebar-footer">
@@ -34,17 +34,17 @@
     <header class="topbar">
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title">
-        <h1>Segmentos</h1>
-        <span class="subtitle">Distribuição de leads por segmento IBGE</span>
+        <h1>Segmentos IBGE</h1>
+        <span class="subtitle">Distribuição de leads por potencial de mercado (Score IBGE)</span>
       </div>
     </header>
 
-    <!-- Segment Cards -->
-    <div class="kpi-grid" id="segmentCards" style="margin-bottom:24px">
+    <!-- KPI Cards por segmento -->
+    <div class="kpi-grid" id="segCards" style="margin-bottom:24px">
       <div class="kpi-card">
         <div class="kpi-icon green">💎</div>
         <div class="kpi-info">
-          <p class="kpi-label">Premium (Score 80+)</p>
+          <p class="kpi-label">Premium (80+)</p>
           <h2 class="kpi-value" id="segPremium">—</h2>
           <span class="kpi-delta">Máximo potencial</span>
         </div>
@@ -52,7 +52,7 @@
       <div class="kpi-card">
         <div class="kpi-icon blue">⭐</div>
         <div class="kpi-info">
-          <p class="kpi-label">Alto Valor (60-79)</p>
+          <p class="kpi-label">Alto Valor (60–79)</p>
           <h2 class="kpi-value" id="segAlto">—</h2>
           <span class="kpi-delta">Alto potencial</span>
         </div>
@@ -60,7 +60,7 @@
       <div class="kpi-card">
         <div class="kpi-icon orange">📈</div>
         <div class="kpi-info">
-          <p class="kpi-label">Médio (40-59)</p>
+          <p class="kpi-label">Médio (40–59)</p>
           <h2 class="kpi-value" id="segMedio">—</h2>
           <span class="kpi-delta">Potencial médio</span>
         </div>
@@ -79,92 +79,142 @@
     <div class="charts-grid" style="margin-bottom:24px">
       <div class="chart-card large">
         <div class="chart-header"><h3>Leads por Segmento</h3></div>
-        <canvas id="segmentBar" height="100"></canvas>
+        <canvas id="segBar" height="100"></canvas>
       </div>
       <div class="chart-card">
         <div class="chart-header"><h3>Proporção</h3></div>
-        <canvas id="segmentPie" height="200"></canvas>
+        <canvas id="segPie" height="200"></canvas>
       </div>
     </div>
 
-    <!-- Leads por segmento -->
-    <div id="segmentTables"></div>
+    <!-- Tabelas por segmento -->
+    <div id="segTables"></div>
+
+    <!-- Empty state (sem Supabase) -->
+    <div id="segEmpty" style="display:none">
+      <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <h3>Supabase não conectado</h3>
+        <p>Configure as credenciais do Supabase em <a href="settings.html">Configurações</a> para visualizar os segmentos.</p>
+      </div>
+    </div>
   </main>
 
   <script src="../assets/js/config.js"></script>
   <script src="../assets/js/supabase-client.js"></script>
-  <script src="../assets/js/ibge-api.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+  (function() {
+    const SEGS = [
+      { label:'Premium',    min:80, color:'#10B981', badge:'badge-green',  icon:'💎' },
+      { label:'Alto Valor', min:60, color:'#4F46E5', badge:'badge-blue',   icon:'⭐' },
+      { label:'Médio',      min:40, color:'#F59E0B', badge:'badge-orange', icon:'📈' },
+      { label:'Básico',     min:0,  color:'#94A3B8', badge:'badge-gray',   icon:'🌱' },
+    ];
+    const stMap = {novo:'badge-blue',contato:'badge-orange',qualificado:'badge-green',descartado:'badge-red'};
+    let barChart = null, pieChart = null;
+
+    async function loadSegments() {
       const leads = await getLeads();
 
-      const groups = { 'Premium': [], 'Alto Valor': [], 'Médio': [], 'Básico': [] };
+      if (!isDbReady()) {
+        document.getElementById('segEmpty').style.display = 'block';
+        return;
+      }
+
+      // Agrupa por segmento
+      const groups = {};
+      SEGS.forEach(s => groups[s.label] = []);
       leads.forEach(l => {
-        const seg = getSegment(l.score_ibge || 0);
-        if (groups[seg.label]) groups[seg.label].push(l);
+        const score = l.score_ibge || 0;
+        const seg = SEGS.find(s => score >= s.min) || SEGS[3];
+        groups[seg.label].push(l);
       });
 
+      // KPI cards
       document.getElementById('segPremium').textContent = groups['Premium'].length;
       document.getElementById('segAlto').textContent    = groups['Alto Valor'].length;
       document.getElementById('segMedio').textContent   = groups['Médio'].length;
       document.getElementById('segBasico').textContent  = groups['Básico'].length;
 
-      const labels = Object.keys(groups);
-      const values = labels.map(k => groups[k].length);
-      const colors = ['#10B981','#4F46E5','#F59E0B','#94A3B8'];
+      const labels = SEGS.map(s => s.label);
+      const values = SEGS.map(s => groups[s.label].length);
+      const colors = SEGS.map(s => s.color);
+      const total  = leads.length || 1;
 
-      new Chart(document.getElementById('segmentBar'), {
+      // Bar chart
+      if (barChart) barChart.destroy();
+      barChart = new Chart(document.getElementById('segBar'), {
         type: 'bar',
-        data: {
-          labels,
-          datasets: [{ label:'Leads', data: values, backgroundColor: colors, borderRadius:8 }]
-        },
+        data: { labels, datasets: [{ label:'Leads', data:values, backgroundColor:colors, borderRadius:8 }] },
         options: {
-          responsive: true,
-          plugins: { legend: { display: false } },
-          scales: { x: { grid:{display:false} }, y: { beginAtZero:true } }
+          responsive:true,
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ grid:{display:false} },
+            y:{ beginAtZero:true, grid:{color:'#F1F5F9'} }
+          }
         }
       });
 
-      new Chart(document.getElementById('segmentPie'), {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [{ data: values, backgroundColor: colors, borderWidth:2, borderColor:'#fff' }]
-        },
-        options: { responsive: true, cutout:'65%', plugins: { legend: { position:'bottom' } } }
+      // Pie chart
+      if (pieChart) pieChart.destroy();
+      pieChart = new Chart(document.getElementById('segPie'), {
+        type:'doughnut',
+        data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderWidth:2, borderColor:'#fff' }] },
+        options:{ responsive:true, cutout:'65%', plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{size:11} } } } }
       });
 
-      // Tables per segment
-      const container = document.getElementById('segmentTables');
-      Object.entries(groups).forEach(([name, list]) => {
-        if (!list.length) return;
-        const badge = {'Premium':'badge-green','Alto Valor':'badge-blue','Médio':'badge-orange','Básico':'badge-gray'}[name];
-        const color = colors[labels.indexOf(name)];
-        container.innerHTML += `
+      // Tabelas por segmento
+      document.getElementById('segTables').innerHTML = SEGS.map(seg => {
+        const list = groups[seg.label];
+        if (!list.length) return '';
+        const pct = Math.round(list.length / total * 100);
+        return `
           <div class="table-card" style="margin-bottom:20px">
-            <div class="table-header">
-              <h3><span class="badge ${badge}" style="font-size:13px;padding:4px 10px">${name}</span></h3>
-              <span style="font-size:13px;color:var(--text-muted)">${list.length} leads</span>
+            <div class="table-header" style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0;display:flex;align-items:center;gap:8px">
+                <span style="font-size:20px">${seg.icon}</span>
+                <span class="badge ${seg.badge}" style="font-size:13px;padding:4px 12px;background:${seg.color}22;color:${seg.color}">${seg.label}</span>
+                <span style="font-size:12px;color:var(--text-muted);font-weight:400">Score IBGE ${seg.min > 0 ? seg.min+'+' : '< 40'}</span>
+              </h3>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="text-align:right">
+                  <div style="font-size:20px;font-weight:800;color:${seg.color}">${list.length}</div>
+                  <div style="font-size:11px;color:var(--text-muted)">${pct}% do total</div>
+                </div>
+                <div style="width:60px;background:#F1F5F9;border-radius:4px;height:8px">
+                  <div style="width:${pct}%;background:${seg.color};height:8px;border-radius:4px"></div>
+                </div>
+              </div>
             </div>
             <div class="table-wrapper">
               <table class="data-table">
-                <thead><tr><th>Nome</th><th>Cidade/UF</th><th>Score</th><th>Status</th><th>Ação</th></tr></thead>
+                <thead>
+                  <tr><th>Nome</th><th>Cidade / UF</th><th>Score IBGE</th><th>Status</th><th>Contato</th><th>Ação</th></tr>
+                </thead>
                 <tbody>
                   ${list.slice(0,10).map(l => `
                     <tr>
-                      <td><strong>${l.nome}</strong></td>
-                      <td>${l.cidade||'—'}${l.estado?', '+l.estado:''}</td>
-                      <td><span style="font-weight:700;color:${color}">${l.score_ibge||0}</span></td>
-                      <td><span class="badge badge-gray">${l.status||'novo'}</span></td>
-                      <td><a href="leads.html?id=${l.id}" class="btn btn-outline btn-sm">Ver</a></td>
+                      <td><strong>${l.nome}</strong>${l.nicho ? '<br><span style="font-size:11px;color:var(--text-muted)">'+l.nicho+'</span>' : ''}</td>
+                      <td>${l.cidade||'—'}${l.estado?', '+l.estado:''}${l.bairro?'<br><span style="font-size:11px;color:var(--text-muted)">📍'+l.bairro+'</span>':''}</td>
+                      <td>
+                        <span style="font-weight:700;color:${seg.color};font-size:15px">${l.score_ibge ?? '—'}</span>
+                      </td>
+                      <td><span class="badge ${stMap[l.status]||'badge-gray'}">${l.status||'novo'}</span></td>
+                      <td style="font-size:12px">${l.telefone||l.email||'—'}</td>
+                      <td><a href="leads.html" class="btn btn-outline btn-sm">Ver</a></td>
                     </tr>`).join('')}
                 </tbody>
               </table>
             </div>
+            ${list.length > 10 ? '<div style="padding:10px 20px;font-size:12px;color:var(--text-muted);text-align:center">+' + (list.length-10) + ' leads — <a href="leads.html" style="color:var(--primary)">ver todos em Leads →</a></div>' : ''}
           </div>`;
-      });
-    });
+      }).join('');
+    }
+
+    document.addEventListener('supabase:ready', loadSegments);
+    if (typeof isDbReady === 'function' && isDbReady()) loadSegments();
+  })();
   </script>
 </body>
 </html>

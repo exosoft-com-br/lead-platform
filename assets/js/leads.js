@@ -6,14 +6,32 @@ let allLeads = [];
 let selectedIds = new Set();
 
 async function initLeads() {
-  await IBGE.popularSelectEstados(document.getElementById('fEstado'));
-  await IBGE.popularSelectEstados(document.getElementById('filterEstado'));
-  _popularNichos(document.getElementById('fNicho'));
-  _popularNichos(document.getElementById('filterNicho'));
-  await loadLeads();
-  if (location.hash === '#novo') openModal();
-  const id = new URLSearchParams(location.search).get('id');
-  if (id) editLead(id);
+  try {
+    await IBGE.popularSelectEstados(document.getElementById('fEstado'));
+    await IBGE.popularSelectEstados(document.getElementById('filterEstado'));
+    _popularNichos(document.getElementById('fNicho'));
+    _popularNichos(document.getElementById('filterNicho'));
+    await loadLeads();
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (id) {
+      editLead(id);
+    } else if (params.get('novo') === '1') {
+      // Vindo da Análise IBGE — pré-preenche com dados do município
+      const prefill = {
+        estado:     params.get('estado') || '',
+        cidade:     params.get('cidade') || '',
+        score_ibge: params.get('score')  ? parseInt(params.get('score'), 10) : null,
+        _municipio: params.get('municipio') || params.get('cidade') || '',
+        origem:     'ibge',
+      };
+      openModal(prefill);
+    } else if (location.hash === '#novo') {
+      openModal();
+    }
+  } catch(e) {
+    console.error('[initLeads] erro:', e);
+  }
 }
 
 function _popularNichos(select) {
@@ -156,8 +174,14 @@ function openModal(data = null) {
   document.getElementById('fOrigem').value    = '';
   document.getElementById('fNicho').value     = '';
 
+  // Limpa score IBGE
+  const scoreRow = document.getElementById('scoreIbgeRow');
+  if (scoreRow) scoreRow.style.display = 'none';
+  const scoreInput = document.getElementById('fScoreIbge');
+  if (scoreInput) scoreInput.value = '';
+
   if (data) {
-    document.getElementById('leadId').value     = data.id;
+    document.getElementById('leadId').value     = data.id || '';
     document.getElementById('fNome').value      = data.nome || '';
     document.getElementById('fEmail').value     = data.email || '';
     document.getElementById('fTelefone').value  = data.telefone || '';
@@ -174,6 +198,20 @@ function openModal(data = null) {
       IBGE.popularSelectMunicipios(document.getElementById('fCidade'), data.estado).then(() => {
         if (data.cidade) document.getElementById('fCidade').value = data.cidade;
       });
+    }
+
+    // Score IBGE (vindo da Análise IBGE)
+    if (data.score_ibge != null) {
+      if (scoreInput) scoreInput.value = data.score_ibge;
+      if (scoreRow) {
+        scoreRow.style.display = 'block';
+        document.getElementById('scoreIbgeDisplay').textContent = data.score_ibge;
+        const mun = document.getElementById('scoreIbgeMunicipio');
+        if (mun) mun.textContent = data._municipio ? `📍 ${data._municipio}` : 'Calculado via IBGE SIDRA';
+      }
+      // Vai direto para tab nicho para mostrar o score
+      const nichoTabBtn = document.querySelector('.tab-btn:nth-child(2)');
+      if (nichoTabBtn) switchTab('nicho', nichoTabBtn);
     }
   }
 
@@ -201,19 +239,21 @@ async function saveLead() {
   btn.disabled = true;
   btn.textContent = 'Salvando...';
 
+  const scoreRaw = document.getElementById('fScoreIbge')?.value;
   const lead = {
     nome,
-    email:    document.getElementById('fEmail').value.trim() || null,
-    telefone: document.getElementById('fTelefone').value.trim() || null,
-    cpf:      document.getElementById('fCpf').value.trim() || null,
-    estado:   document.getElementById('fEstado').value || null,
-    cidade:   document.getElementById('fCidade').value || null,
-    bairro:   document.getElementById('fBairro').value.trim() || null,
-    cep:      document.getElementById('fCep').value.trim() || null,
-    nicho:    document.getElementById('fNicho').value || null,
-    notas:    document.getElementById('fNotas').value.trim() || null,
-    status:   document.getElementById('fStatus').value,
-    origem:   document.getElementById('fOrigem').value || null,
+    email:      document.getElementById('fEmail').value.trim() || null,
+    telefone:   document.getElementById('fTelefone').value.trim() || null,
+    cpf:        document.getElementById('fCpf').value.trim() || null,
+    estado:     document.getElementById('fEstado').value || null,
+    cidade:     document.getElementById('fCidade').value || null,
+    bairro:     document.getElementById('fBairro').value.trim() || null,
+    cep:        document.getElementById('fCep').value.trim() || null,
+    nicho:      document.getElementById('fNicho').value || null,
+    notas:      document.getElementById('fNotas').value.trim() || null,
+    status:     document.getElementById('fStatus').value,
+    origem:     document.getElementById('fOrigem').value || null,
+    score_ibge: scoreRaw ? parseInt(scoreRaw, 10) : null,
   };
 
   const existingId = document.getElementById('leadId').value;

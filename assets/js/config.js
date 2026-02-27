@@ -1,25 +1,21 @@
-/* =============================================
+﻿/* =============================================
    config.js — Configure suas credenciais aqui
    ============================================= */
 
 // Carrega credenciais salvas no navegador (definidas em Configurações)
 const _savedUrl = localStorage.getItem('sb_url') || '';
 const _savedKey = localStorage.getItem('sb_key') || '';
-const _savedWeights = JSON.parse(localStorage.getItem('score_weights') || 'null');
 
 const APP_CONFIG = {
   // ── Supabase ──────────────────────────────
-  // 1. Acesse https://app.supabase.com → seu projeto → Settings → API
-  // 2. Copie "Project URL" e "anon public" key
-  // 3. OU configure via página de Configurações da plataforma
-  supabaseUrl:  _savedUrl  || 'https://bhargdkruycbrcanfvuz.supabase.co',
-  supabaseKey:  _savedKey  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoYXJnZGtydXljYnJjYW5mdnV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzQ1NzgsImV4cCI6MjA4NzQ1MDU3OH0.jBRK_IhUNzxMzf_4UNjpabgwEB7MpqrTL29qTvZK_os',
+  supabaseUrl: _savedUrl || 'https://bhargdkruycbrcanfvuz.supabase.co',
+  supabaseKey: _savedKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoYXJnZGtydXljYnJjYW5mdnV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzQ1NzgsImV4cCI6MjA4NzQ1MDU3OH0.jBRK_IhUNzxMzf_4UNjpabgwEB7MpqrTL29qTvZK_os',
 
   // ── App ───────────────────────────────────
   appName: 'NichoLeads',
   version: '2.0.0',
 
-  // ── IBGE API (para busca de estados/cidades) ──
+  // ── IBGE API ──────────────────────────────
   ibgeBaseUrl: 'https://servicodados.ibge.gov.br/api',
 
   // ── Nichos de Produto ─────────────────────
