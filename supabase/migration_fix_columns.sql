@@ -5,14 +5,21 @@
 -- =============================================
 
 -- Adiciona colunas que podem estar faltando
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS nome          TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS email         TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS telefone      TEXT;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS cpf           TEXT;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS cep           TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS estado        TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS cidade        TEXT;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS municipio_id  TEXT;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS score_ibge    INTEGER DEFAULT 0;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS segmento      TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS status        TEXT DEFAULT 'novo';
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS origem        TEXT;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS notas         TEXT;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS ibge_detalhes JSONB;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS created_at    TIMESTAMPTZ DEFAULT NOW();
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS updated_at    TIMESTAMPTZ DEFAULT NOW();
 
 -- Garante constraints corretas (não falha se já existirem nomes diferentes)
