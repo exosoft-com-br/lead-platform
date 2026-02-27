@@ -1,0 +1,8 @@
+# GitHub Pages configuration
+# This file allows the site to be served correctly from GitHub Pages
+
+theme: null
+include:
+  - assets
+  - pages
+  - supabase

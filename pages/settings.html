@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações — LeadIBGE</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📊</div>
+      <span class="logo-text">LeadIBGE</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="../index.html" class="nav-item"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
+      <a href="leads.html" class="nav-item"><span class="nav-icon">👥</span><span>Leads</span></a>
+      <a href="analysis.html" class="nav-item"><span class="nav-icon">🗺️</span><span>Análise IBGE</span></a>
+      <a href="segments.html" class="nav-item"><span class="nav-icon">🎯</span><span>Segmentos</span></a>
+      <a href="settings.html" class="nav-item active"><span class="nav-icon">⚙️</span><span>Configurações</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="db-status" id="dbStatus">
+        <span class="status-dot offline"></span>
+        <span class="status-text">Supabase offline</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1>Configurações</h1>
+        <span class="subtitle">Configure o Supabase e personalize a plataforma</span>
+      </div>
+    </header>
+
+    <!-- Supabase Config -->
+    <div class="info-card" style="margin-bottom:20px">
+      <h3>🔌 Conexão Supabase</h3>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="form-group">
+          <label class="form-label">Project URL</label>
+          <input type="url" class="form-input" id="cfgUrl" placeholder="https://SEU_PROJETO.supabase.co">
+          <p class="form-hint">Encontre em: Supabase → Settings → API → Project URL</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anon Key (public)</label>
+          <input type="password" class="form-input" id="cfgKey" placeholder="eyJ...">
+          <p class="form-hint">Encontre em: Supabase → Settings → API → anon public</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="saveConfig()">💾 Salvar Configuração</button>
+        <button class="btn btn-outline" onclick="testConnection()">🔍 Testar Conexão</button>
+        <button class="btn btn-outline" onclick="clearConfig()">🗑 Limpar</button>
+      </div>
+      <div id="testResult" style="margin-top:12px;font-size:13px"></div>
+    </div>
+
+    <!-- SQL Schema -->
+    <div class="info-card" style="margin-bottom:20px">
+      <h3>🗄️ Schema do Banco de Dados</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin:8px 0 16px">
+        Execute o SQL abaixo no <strong>Supabase SQL Editor</strong> para criar as tabelas necessárias.
+      </p>
+      <pre id="sqlSchema" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:12px;overflow-x:auto;line-height:1.6;max-height:400px;overflow-y:auto"></pre>
+      <button class="btn btn-outline" style="margin-top:8px" onclick="copySQL()">📋 Copiar SQL</button>
+      <a href="https://app.supabase.com" target="_blank" class="btn btn-primary" style="margin-top:8px;margin-left:8px">
+        Abrir Supabase →
+      </a>
+    </div>
+
+    <!-- Score Weights -->
+    <div class="info-card" style="margin-bottom:20px">
+      <h3>⚖️ Pesos do Score IBGE</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin:8px 0 16px">
+        Ajuste os pesos de cada indicador na composição do score. Total deve somar 1.0.
+      </p>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label class="form-label">PIB per capita</label>
+          <input type="number" class="form-input" id="wPib" min="0" max="1" step="0.05" value="0.35">
+        </div>
+        <div class="form-group">
+          <label class="form-label">IDH Municipal</label>
+          <input type="number" class="form-input" id="wIdh" min="0" max="1" step="0.05" value="0.30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grau de Instrução</label>
+          <input type="number" class="form-input" id="wInstr" min="0" max="1" step="0.05" value="0.20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">População</label>
+          <input type="number" class="form-input" id="wPop" min="0" max="1" step="0.05" value="0.15">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Soma atual</label>
+          <input type="text" class="form-input" id="wTotal" readonly style="background:var(--bg);font-weight:600">
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="saveWeights()">💾 Salvar Pesos</button>
+    </div>
+
+    <!-- About -->
+    <div class="info-card">
+      <h3>ℹ️ Sobre o LeadIBGE</h3>
+      <div class="info-row"><span>Versão</span><strong>1.0.0</strong></div>
+      <div class="info-row"><span>Hospedagem</span><strong>GitHub Pages (gratuito)</strong></div>
+      <div class="info-row"><span>Banco de dados</span><strong>Supabase (gratuito até 500MB)</strong></div>
+      <div class="info-row"><span>API IBGE</span><strong>SIDRA / Localidades (gratuito, público)</strong></div>
+      <div class="info-row">
+        <span>Código-fonte</span>
+        <a href="https://github.com" target="_blank" class="btn btn-outline btn-sm">GitHub ↗</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script>
+    const SQL_SCHEMA = `-- LeadIBGE — Schema Supabase
+-- Execute no SQL Editor do seu projeto Supabase
+
+CREATE TABLE IF NOT EXISTS leads (
+  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  nome          TEXT NOT NULL,
+  email         TEXT,
+  telefone      TEXT,
+  cpf           TEXT,
+  cep           TEXT,
+  estado        TEXT,
+  cidade        TEXT,
+  municipio_id  TEXT,
+  score_ibge    INTEGER DEFAULT 0,
+  segmento      TEXT,
+  status        TEXT DEFAULT 'novo' CHECK (status IN ('novo','contato','qualificado','descartado')),
+  origem        TEXT,
+  notas         TEXT,
+  ibge_detalhes JSONB,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Auto-update updated_at
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER leads_updated_at
+  BEFORE UPDATE ON leads
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_leads_estado    ON leads(estado);
+CREATE INDEX IF NOT EXISTS idx_leads_segmento  ON leads(segmento);
+CREATE INDEX IF NOT EXISTS idx_leads_status    ON leads(status);
+CREATE INDEX IF NOT EXISTS idx_leads_score     ON leads(score_ibge);
+CREATE INDEX IF NOT EXISTS idx_leads_created   ON leads(created_at DESC);
+
+-- Row Level Security (RLS) — opcional, habilite para produção
+-- ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY "Acesso público" ON leads FOR ALL USING (true);
+
+-- View de resumo por segmento
+CREATE OR REPLACE VIEW vw_leads_por_segmento AS
+SELECT
+  segmento,
+  COUNT(*)          AS total,
+  AVG(score_ibge)   AS score_medio,
+  COUNT(*) FILTER (WHERE status = 'qualificado') AS qualificados
+FROM leads
+GROUP BY segmento;`;
+
+    document.getElementById('sqlSchema').textContent = SQL_SCHEMA;
+
+    // Load saved config
+    document.addEventListener('DOMContentLoaded', () => {
+      const url = localStorage.getItem('sb_url') || '';
+      const key = localStorage.getItem('sb_key') || '';
+      document.getElementById('cfgUrl').value = url;
+      document.getElementById('cfgKey').value = key;
+      updateWeightTotal();
+
+      ['wPib','wIdh','wInstr','wPop'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateWeightTotal);
+      });
+    });
+
+    function saveConfig() {
+      const url = document.getElementById('cfgUrl').value.trim();
+      const key = document.getElementById('cfgKey').value.trim();
+      if (!url || !key) { toast('Preencha URL e Key', 'error'); return; }
+      localStorage.setItem('sb_url', url);
+      localStorage.setItem('sb_key', key);
+
+      // Patch config
+      APP_CONFIG.supabaseUrl = url;
+      APP_CONFIG.supabaseKey = key;
+      initSupabase();
+      toast('Configuração salva! Recarregando...', 'success');
+      setTimeout(() => location.href = '../index.html', 1500);
+    }
+
+    async function testConnection() {
+      const url = document.getElementById('cfgUrl').value.trim();
+      const key = document.getElementById('cfgKey').value.trim();
+      const result = document.getElementById('testResult');
+      if (!url || !key) { result.innerHTML = '<span style="color:var(--danger)">Preencha URL e Key primeiro</span>'; return; }
+      result.innerHTML = '⏳ Testando...';
+      try {
+        const { createClient } = window.supabase;
+        const client = createClient(url, key);
+        const { error } = await client.from('leads').select('id').limit(1);
+        if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
+          result.innerHTML = `<span style="color:var(--danger)">❌ Erro: ${error.message}</span>`;
+        } else {
+          result.innerHTML = '<span style="color:var(--success)">✅ Conexão bem-sucedida!</span>';
+        }
+      } catch(e) {
+        result.innerHTML = `<span style="color:var(--danger)">❌ ${e.message}</span>`;
+      }
+    }
+
+    function clearConfig() {
+      localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key');
+      document.getElementById('cfgUrl').value = '';
+      document.getElementById('cfgKey').value = '';
+      toast('Configuração removida', 'warning');
+    }
+
+    function copySQL() {
+      navigator.clipboard.writeText(SQL_SCHEMA).then(() => toast('SQL copiado!', 'success'));
+    }
+
+    function updateWeightTotal() {
+      const vals = ['wPib','wIdh','wInstr','wPop'].map(id => parseFloat(document.getElementById(id).value)||0);
+      const total = vals.reduce((a,b)=>a+b,0).toFixed(2);
+      const el = document.getElementById('wTotal');
+      el.value = total;
+      el.style.color = Math.abs(total-1) < 0.01 ? 'var(--success)' : 'var(--danger)';
+    }
+
+    function saveWeights() {
+      const vals = {
+        pib_per_capita: parseFloat(document.getElementById('wPib').value),
+        idh:            parseFloat(document.getElementById('wIdh').value),
+        grau_instrucao: parseFloat(document.getElementById('wInstr').value),
+        populacao:      parseFloat(document.getElementById('wPop').value),
+      };
+      const total = Object.values(vals).reduce((a,b)=>a+b,0);
+      if (Math.abs(total-1) > 0.01) { toast('Soma dos pesos deve ser 1.0', 'error'); return; }
+      Object.assign(APP_CONFIG.scoreWeights, vals);
+      localStorage.setItem('score_weights', JSON.stringify(vals));
+      toast('Pesos salvos!', 'success');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeadIBGE — Plataforma de Leads Estruturados</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📊</div>
+      <span class="logo-text">LeadIBGE</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="pages/leads.html" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span>Leads</span>
+      </a>
+      <a href="pages/analysis.html" class="nav-item">
+        <span class="nav-icon">🗺️</span>
+        <span>Análise IBGE</span>
+      </a>
+      <a href="pages/segments.html" class="nav-item">
+        <span class="nav-icon">🎯</span>
+        <span>Segmentos</span>
+      </a>
+      <a href="pages/settings.html" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Configurações</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="db-status" id="dbStatus">
+        <span class="status-dot offline"></span>
+        <span class="status-text">Supabase offline</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1>Dashboard</h1>
+        <span class="subtitle">Visão geral dos seus leads e análise demográfica</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="window.location.href='pages/leads.html#novo'">
+          + Novo Lead
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon blue">👥</div>
+        <div class="kpi-info">
+          <p class="kpi-label">Total de Leads</p>
+          <h2 class="kpi-value" id="totalLeads">—</h2>
+          <span class="kpi-delta positive" id="deltaLeads">Carregando...</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green">✅</div>
+        <div class="kpi-info">
+          <p class="kpi-label">Leads Qualificados</p>
+          <h2 class="kpi-value" id="qualifiedLeads">—</h2>
+          <span class="kpi-delta positive" id="deltaQualified">Carregando...</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon orange">🔥</div>
+        <div class="kpi-info">
+          <p class="kpi-label">Score Médio</p>
+          <h2 class="kpi-value" id="avgScore">—</h2>
+          <span class="kpi-delta" id="deltaScore">Baseado no IBGE</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple">🗺️</div>
+        <div class="kpi-info">
+          <p class="kpi-label">Estados Cobertos</p>
+          <h2 class="kpi-value" id="statesCovered">—</h2>
+          <span class="kpi-delta" id="deltaStates">Carregando...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts Row -->
+    <section class="charts-grid">
+      <div class="chart-card large">
+        <div class="chart-header">
+          <h3>Evolução de Leads</h3>
+          <div class="chart-actions">
+            <button class="chip active" onclick="setChartPeriod('7d', this)">7d</button>
+            <button class="chip" onclick="setChartPeriod('30d', this)">30d</button>
+            <button class="chip" onclick="setChartPeriod('90d', this)">90d</button>
+          </div>
+        </div>
+        <canvas id="leadsChart" height="100"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Segmentos IBGE</h3>
+        </div>
+        <canvas id="segmentsChart" height="200"></canvas>
+      </div>
+    </section>
+
+    <!-- Second Charts Row -->
+    <section class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Leads por Estado</h3>
+        </div>
+        <canvas id="statesChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Faixa de Renda Regional</h3>
+        </div>
+        <canvas id="incomeChart" height="200"></canvas>
+      </div>
+    </section>
+
+    <!-- Recent Leads Table -->
+    <section class="table-card">
+      <div class="table-header">
+        <h3>Leads Recentes</h3>
+        <a href="pages/leads.html" class="btn btn-outline">Ver todos</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Cidade / Estado</th>
+              <th>Score IBGE</th>
+              <th>Segmento</th>
+              <th>Status</th>
+              <th>Data</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="recentLeadsBody">
+            <tr>
+              <td colspan="7" class="loading-row">Carregando leads...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/ibge-api.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

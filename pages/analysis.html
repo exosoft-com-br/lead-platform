@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Análise IBGE — LeadIBGE</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📊</div>
+      <span class="logo-text">LeadIBGE</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="../index.html" class="nav-item"><span class="nav-icon">🏠</span><span>Dashboard</span></a>
+      <a href="leads.html" class="nav-item"><span class="nav-icon">👥</span><span>Leads</span></a>
+      <a href="analysis.html" class="nav-item active"><span class="nav-icon">🗺️</span><span>Análise IBGE</span></a>
+      <a href="segments.html" class="nav-item"><span class="nav-icon">🎯</span><span>Segmentos</span></a>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span>Configurações</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="db-status" id="dbStatus">
+        <span class="status-dot offline"></span>
+        <span class="status-text">Supabase offline</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1>Análise IBGE</h1>
+        <span class="subtitle">Explore dados demográficos e econômicos do Censo IBGE por município</span>
+      </div>
+    </header>
+
+    <!-- Search Panel -->
+    <div class="info-card" style="margin-bottom:20px">
+      <h3>Consultar Município</h3>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="anaEstado" onchange="onAnaEstadoChange()">
+            <option value="">Selecione o estado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cidade</label>
+          <select class="form-select" id="anaCidade" disabled onchange="onAnaCidadeChange()">
+            <option value="">Selecione o estado primeiro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result Panel -->
+    <div id="resultPanel" style="display:none">
+      <!-- Score Hero -->
+      <div class="ibge-widget" id="heroWidget">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+          <div>
+            <h2 id="heroMunicipio">—</h2>
+            <div class="big" id="heroScore">—</div>
+            <div class="sub">Score de potencial de mercado</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:24px;font-weight:800" id="heroSegmento">—</div>
+            <div style="font-size:13px;opacity:.8">Segmento IBGE</div>
+            <button class="btn btn-primary" style="margin-top:12px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4)"
+              onclick="addLeadFromAnalysis()">
+              + Adicionar Lead desta região
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicators Grid -->
+      <div class="kpi-grid" style="margin-top:16px" id="indicatorsGrid">
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid" style="margin-top:8px">
+        <div class="chart-card">
+          <div class="chart-header"><h3>Composição do Score</h3></div>
+          <canvas id="scoreRadar" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><h3>Dados brutos</h3></div>
+          <div id="rawDataList" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Municipalities in State -->
+      <div class="table-card" style="margin-top:16px">
+        <div class="table-header">
+          <h3 id="municipiosTitle">Municípios do Estado</h3>
+          <span class="badge badge-blue" id="municipiosCount"></span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Município</th>
+                <th>Código IBGE</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="municipiosBody">
+              <tr><td colspan="4" class="loading-row">Selecione um estado</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyAnalysis" class="empty-state">
+      <div class="empty-icon">🗺️</div>
+      <h3>Selecione um município para analisar</h3>
+      <p>Escolha um estado e cidade acima para ver os indicadores do IBGE e calcular o score de potencial de mercado.</p>
+    </div>
+  </main>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/ibge-api.js"></script>
+  <script src="../assets/js/analysis.js"></script>
+</body>
+</html>
