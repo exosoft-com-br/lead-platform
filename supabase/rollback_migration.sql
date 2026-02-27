@@ -10,7 +10,8 @@ DROP VIEW IF EXISTS vw_leads_por_segmento;
 
 -- Remove trigger e função criados pela migration
 DROP TRIGGER IF EXISTS leads_updated_at ON leads;
-DROP FUNCTION IF EXISTS update_updated_at_column();
+DROP TRIGGER IF EXISTS update_leads_updated_at ON leads;
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 
 -- Remove índices adicionados
 DROP INDEX IF EXISTS idx_leads_score;
