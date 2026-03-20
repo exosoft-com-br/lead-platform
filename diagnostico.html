@@ -17,7 +17,7 @@
   </style>
 </head>
 <body>
-<h1>🔍 Diagnóstico LeadIBGE</h1>
+<h1>Diagnóstico LeadIBGE</h1>
 
 <div class="box">
   <h2>1. JavaScript &amp; localStorage</h2>
@@ -76,11 +76,11 @@
   const errLog = document.getElementById('errLog');
   const errors = [];
   window.onerror = (msg, src, line, col, err) => {
-    errors.push(`<div class="line err">❌ ${msg} — ${src}:${line}</div>`);
+    errors.push(`<div class="line err">${msg} — ${src}:${line}</div>`);
     errLog.innerHTML = errors.join('');
   };
   window.onunhandledrejection = e => {
-    errors.push(`<div class="line err">❌ (Promise) ${e.reason}</div>`);
+    errors.push(`<div class="line err">(Promise) ${e.reason}</div>`);
     errLog.innerHTML = errors.join('');
   };
 
@@ -90,25 +90,25 @@
   try {
     localStorage.setItem('_test_', '1');
     localStorage.removeItem('_test_');
-    log('jsTest', '<div class="line ok">✅ JavaScript: OK</div><div class="line ok">✅ localStorage: OK</div>');
+    log('jsTest', '<div class="line ok">JavaScript: OK</div><div class="line ok">localStorage: OK</div>');
   } catch(e) {
-    log('jsTest', `<div class="line err">❌ localStorage falhou: ${e.message}</div>`);
+    log('jsTest', `<div class="line err">localStorage falhou: ${e.message}</div>`);
   }
 
   // 6. Supabase CDN
   setTimeout(() => {
     const sb = window.supabase;
     if (!sb) {
-      log('supabaseTest', '<div class="line err">❌ window.supabase = undefined — CDN não carregou ou global diferente</div>');
+      log('supabaseTest', '<div class="line err">window.supabase = undefined — CDN não carregou ou global diferente</div>');
       // Tenta outros nomes possíveis
       const alts = ['supabaseJs','Supabase','createClient'];
       alts.forEach(k => {
-        if (window[k]) log('supabaseTest', `<div class="line warn">⚠️ Encontrado como window.${k}</div>`);
+        if (window[k]) log('supabaseTest', `<div class="line warn">Encontrado como window.${k}</div>`);
       });
     } else if (typeof sb.createClient === 'function') {
-      log('supabaseTest', '<div class="line ok">✅ window.supabase.createClient: disponível</div>');
+      log('supabaseTest', '<div class="line ok">window.supabase.createClient: disponível</div>');
     } else {
-      log('supabaseTest', `<div class="line warn">⚠️ window.supabase existe mas sem createClient. Keys: ${Object.keys(sb).join(', ')}</div>`);
+      log('supabaseTest', `<div class="line warn">window.supabase existe mas sem createClient. Keys: ${Object.keys(sb).join(', ')}</div>`);
     }
   }, 1000);
 
@@ -120,9 +120,9 @@
       const ms = Date.now() - t0;
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
-      log('ibgeEstados', `<div class="line ok">✅ ${data.length} estados carregados em ${ms}ms</div><div class="line info">Exemplo: ${data[0].nome} (${data[0].sigla})</div>`);
+      log('ibgeEstados', `<div class="line ok">${data.length} estados carregados em ${ms}ms</div><div class="line info">Exemplo: ${data[0].nome} (${data[0].sigla})</div>`);
     } catch(e) {
-      log('ibgeEstados', `<div class="line err">❌ Falhou: ${e.message}</div>`);
+      log('ibgeEstados', `<div class="line err">Falhou: ${e.message}</div>`);
     }
   })();
 
@@ -134,9 +134,9 @@
       const ms = Date.now() - t0;
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
-      log('ibgeMunicipios', `<div class="line ok">✅ ${data.length} municípios SP em ${ms}ms</div><div class="line info">Primeiro: ${data[0].nome} (id: ${data[0].id})</div>`);
+      log('ibgeMunicipios', `<div class="line ok">${data.length} municípios SP em ${ms}ms</div><div class="line info">Primeiro: ${data[0].nome} (id: ${data[0].id})</div>`);
     } catch(e) {
-      log('ibgeMunicipios', `<div class="line err">❌ Falhou: ${e.message}</div>`);
+      log('ibgeMunicipios', `<div class="line err">Falhou: ${e.message}</div>`);
     }
   })();
 
@@ -152,12 +152,12 @@
       const val = data?.[0]?.resultados?.[0]?.series?.[0]?.serie?.['2021'];
       if (val) {
         const pibPerCapita = Math.round((parseFloat(val) * 1000) / 11451999);
-        log('ibgePib', `<div class="line ok">✅ PIB total SP 2021: R$ ${Number(val).toLocaleString('pt-BR')} mil em ${ms}ms</div><div class="line info">PIB per capita estimado: R$ ${pibPerCapita.toLocaleString('pt-BR')}</div>`);
+        log('ibgePib', `<div class="line ok">PIB total SP 2021: R$ ${Number(val).toLocaleString('pt-BR')} mil em ${ms}ms</div><div class="line info">PIB per capita estimado: R$ ${pibPerCapita.toLocaleString('pt-BR')}</div>`);
       } else {
-        log('ibgePib', `<div class="line warn">⚠️ Resposta OK mas valor ausente. JSON: <pre>${JSON.stringify(data).substring(0,300)}</pre></div>`);
+        log('ibgePib', `<div class="line warn">Resposta OK mas valor ausente. JSON: <pre>${JSON.stringify(data).substring(0,300)}</pre></div>`);
       }
     } catch(e) {
-      log('ibgePib', `<div class="line err">❌ Falhou: ${e.message}</div>`);
+      log('ibgePib', `<div class="line err">Falhou: ${e.message}</div>`);
     }
   })();
 
@@ -172,12 +172,12 @@
       const data = await r.json();
       const val = data?.[0]?.resultados?.[0]?.series?.[0]?.serie?.['2022'];
       if (val) {
-        log('ibgePop', `<div class="line ok">✅ População SP Censo 2022: ${Number(val).toLocaleString('pt-BR')} pessoas em ${ms}ms</div>`);
+        log('ibgePop', `<div class="line ok">População SP Censo 2022: ${Number(val).toLocaleString('pt-BR')} pessoas em ${ms}ms</div>`);
       } else {
-        log('ibgePop', `<div class="line warn">⚠️ Valor ausente. JSON: <pre>${JSON.stringify(data).substring(0,300)}</pre></div>`);
+        log('ibgePop', `<div class="line warn">Valor ausente. JSON: <pre>${JSON.stringify(data).substring(0,300)}</pre></div>`);
       }
     } catch(e) {
-      log('ibgePop', `<div class="line err">❌ Falhou: ${e.message}</div>`);
+      log('ibgePop', `<div class="line err">Falhou: ${e.message}</div>`);
     }
   })();
 </script>
@@ -190,17 +190,17 @@
     try {
       if (typeof APP_CONFIG !== 'undefined') {
         log('configTest', `
-          <div class="line ok">✅ APP_CONFIG carregado</div>
+          <div class="line ok">APP_CONFIG carregado</div>
           <div class="line ${APP_CONFIG.supabaseUrl.includes('SEU_PROJETO') ? 'warn' : 'ok'}">
-            ${APP_CONFIG.supabaseUrl.includes('SEU_PROJETO') ? '⚠️' : '✅'} supabaseUrl: ${APP_CONFIG.supabaseUrl}
+            supabaseUrl: ${APP_CONFIG.supabaseUrl}
           </div>
           <div class="line info">scoreWeights: ${JSON.stringify(APP_CONFIG.scoreWeights)}</div>
         `);
       } else {
-        log('configTest', '<div class="line err">❌ APP_CONFIG undefined — config.js não carregou</div>');
+        log('configTest', '<div class="line err">APP_CONFIG undefined — config.js não carregou</div>');
       }
     } catch(e) {
-      log('configTest', `<div class="line err">❌ Erro ao ler APP_CONFIG: ${e.message}</div>`);
+      log('configTest', `<div class="line err">Erro ao ler APP_CONFIG: ${e.message}</div>`);
     }
   }, 500);
 
@@ -217,7 +217,7 @@
       if (!sbLib || typeof sbLib.createClient !== 'function') throw new Error('Supabase CDN não disponível');
 
       const client = sbLib.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseKey);
-      el.innerHTML = '<div class="line info">🔄 Conectando ao Supabase...</div>';
+      el.innerHTML = '<div class="line info">Conectando ao Supabase...</div>';
 
       const t0 = Date.now();
       const { data, error } = await client.from('leads_ibge').select('id, nome, score_ibge, status').limit(5);
@@ -225,24 +225,24 @@
 
       if (error) {
         el.innerHTML = `
-          <div class="line err">❌ Erro ao consultar tabela <b>leads_ibge</b> (${ms}ms)</div>
+          <div class="line err">Erro ao consultar tabela <b>leads_ibge</b> (${ms}ms)</div>
           <div class="line err">Código: ${error.code} — ${error.message}</div>
-          <div class="line warn">⚠️ Execute o schema_ibge.sql no Supabase SQL Editor (arquivo: supabase/schema_ibge.sql)</div>
+          <div class="line warn">Execute o schema_ibge.sql no Supabase SQL Editor (arquivo: supabase/schema_ibge.sql)</div>
         `;
       } else if (!data || data.length === 0) {
         el.innerHTML = `
-          <div class="line ok">✅ Conexão OK — tabela <b>leads_ibge</b> existe (${ms}ms)</div>
-          <div class="line warn">⚠️ Tabela vazia — execute o schema.sql que inclui 10 leads de exemplo</div>
+          <div class="line ok">Conexão OK — tabela <b>leads_ibge</b> existe (${ms}ms)</div>
+          <div class="line warn">Tabela vazia — execute o schema.sql que inclui 10 leads de exemplo</div>
         `;
       } else {
-        const rows = data.map(r => `<div class="line info">  • ${r.nome} | score: ${r.score_ibge} | ${r.status}</div>`).join('');
+        const rows = data.map(r => `<div class="line info">  - ${r.nome} | score: ${r.score_ibge} | ${r.status}</div>`).join('');
         el.innerHTML = `
-          <div class="line ok">✅ Supabase conectado — ${data.length} lead(s) encontrado(s) (${ms}ms)</div>
+          <div class="line ok">Supabase conectado — ${data.length} lead(s) encontrado(s) (${ms}ms)</div>
           ${rows}
         `;
       }
     } catch(e) {
-      el.innerHTML = `<div class="line err">❌ Falhou: ${e.message}</div>`;
+      el.innerHTML = `<div class="line err">Falhou: ${e.message}</div>`;
     }
   }, 1200);
 
@@ -252,12 +252,13 @@
     const leads  = JSON.parse(localStorage.getItem('leads_local') || '[]');
     let html = '';
     if (leads.length > 0) {
-      html += `<div class="line ok">✅ ${leads.length} leads demo no localStorage</div>`;
-      html += `<div class="line info">Exemplo: ${leads[0].nome} — ${leads[0].cidade}/${leads[0].estado} — score ${leads[0].score_ibge}</div>`;
+      html += `<div class="line ok">${leads.length} leads demo no localStorage</div>`;
+      html += `<div class="line info">Exemplo: ${leads[0].nome} - ${leads[0].cidade}/${leads[0].estado} - score ${leads[0].score_ibge}</div>`;
     } else {
-      html += `<div class="line warn">⚠️ localStorage vazio (leads_local = []). Carregue o index.html para acionar o seed automático.</div>`;
+      html += `<div class="line warn">localStorage vazio (leads_local = []). Carregue o index.html para acionar o seed automático.</div>`;
     }
     html += `<div class="line info">Flag leads_seeded: ${seeded || 'não definido'}</div>`;
+    
     document.getElementById('seedTest').innerHTML = html;
   }, 600);
 </script>
